@@ -37,7 +37,7 @@ input[type="text"]{width:100%;padding:12px;font-size:14px;color:#fff;background:
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase, ref, get, child, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 document.addEventListener("DOMContentLoaded", async ()=>{
   const firebaseConfig = {
@@ -78,9 +78,32 @@ document.addEventListener("DOMContentLoaded", async ()=>{
       }catch(e){ console.error(e); return null; }
   }
 
+/*
   window.handleDownload = function(fileUrl){
     window.location.href = fileUrl;
   }
+*/
+
+// Function definition
+window.handleDownload = async (btn, file_url, child_key) => {
+    btn.disabled = true;
+    btn.innerText = "Processing...";
+
+    const downloadsRef = ref(db, `file_lists/${child_key}/downloads`);
+
+    try {
+        await runTransaction(downloadsRef, current => (current || 0) + 1);
+        console.log("Downloads incremented!");
+    } catch (e) {
+        console.error("Failed to increment downloads:", e);
+    }
+
+    // Redirect after increment (or even if increment fails)
+    btn.disabled = false;
+    btn.innerText = "Download";
+    window.location.href = file_url;
+};
+
 
   window.handleUnlock = async function(btn, fileUrl, fileTitle, fileSize, fileType, totalUnlocks, childKey){
     btn.disabled = true;
@@ -140,7 +163,7 @@ document.addEventListener("DOMContentLoaded", async ()=>{
           }else{
               btn.className = "download-btn";
               btn.textContent = "Download";
-              btn.addEventListener("click",()=> window.handleDownload(f.file_url));
+              btn.addEventListener("click", () => window.handleDownload(btn, f.file_url, f._key));
           }
           div.appendChild(btn);
           fileListDiv.appendChild(div);
