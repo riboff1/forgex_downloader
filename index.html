@@ -82,7 +82,7 @@ document.addEventListener("DOMContentLoaded", async ()=>{
     window.location.href = fileUrl;
   }
 
-  window.handleUnlock = async function(btn, fileUrl, fileTitle, fileSize, fileType, totalUnlocks){
+  window.handleUnlock = async function(btn, fileUrl, fileTitle, fileSize, fileType, totalUnlocks, childKey){
     btn.disabled = true;
     const originalText = btn.innerText;
     let currentUrl = fileUrl;
@@ -93,10 +93,10 @@ document.addEventListener("DOMContentLoaded", async ()=>{
             let steps = totalUnlocks - i;
             steps++;
 
-            const rawData = `file_name=${encodeURIComponent(fileTitle)}&file_type=${encodeURIComponent(fileType)}&file_size=${encodeURIComponent(fileSize)}&file_url=${encodeURIComponent(fileUrl)}&unlocks_done=${steps}&unlock_ads=${totalUnlocks}`;
+            const rawData = `file_name=${encodeURIComponent(fileTitle)}&file_type=${encodeURIComponent(fileType)}&file_size=${encodeURIComponent(fileSize)}&file_url=${encodeURIComponent(fileUrl)}&unlocks_done=${steps}&unlock_ads=${totalUnlocks}&child_key=${encodeURIComponent(childKey)}`;
             const encryptedKey = encryptAES(rawData);
-            const downloadUrl = `http://regeditxmods.x10.bz/File_Unlock.html?key=${encryptedKey}`;
-
+            const downloadUrl = `https://riboff1.github.io/unlock_file/?key=${encryptedKey}`;
+            
             const shortUrl = await shortenUrl(downloadUrl);
             if (shortUrl) {
               currentUrl = shortUrl;
@@ -106,7 +106,8 @@ document.addEventListener("DOMContentLoaded", async ()=>{
         }
 
         // Open the final URL in the same click context to avoid popup blockers
-       /* const a = document.createElement('a');
+        /*
+        const a = document.createElement('a');
         a.href = currentUrl;
         a.target = "_blank";
         a.rel = "noopener noreferrer";
@@ -135,7 +136,7 @@ document.addEventListener("DOMContentLoaded", async ()=>{
           if(f.unlock_ads>0){
               btn.className = "unlock-btn";
               btn.textContent = `🔐 Unlock 0/${f.unlock_ads}`;
-              btn.addEventListener("click",()=> window.handleUnlock(btn,f.file_url,f.file_title,f.file_size,f.file_type,f.unlock_ads));
+              btn.addEventListener("click",()=> window.handleUnlock(btn,f.file_url,f.file_title,f.file_size,f.file_type,f.unlock_ads,f._key));
           }else{
               btn.className = "download-btn";
               btn.textContent = "Download";
@@ -147,17 +148,21 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   }
 
   async function loadFiles(){
-      fileListDiv.innerHTML = "Loading files...";
-      const snapshot = await get(child(ref(db),"file_lists"));
-      allFiles = [];
-      if(snapshot.exists()){
-          const data = snapshot.val();
-          Object.keys(data).forEach(k=>allFiles.push(data[k]));
-          renderFiles(allFiles);
-      }else{
-          fileListDiv.innerHTML = "No files available.";
-      }
-  }
+    fileListDiv.innerHTML = "Loading files...";
+    const snapshot = await get(child(ref(db),"file_lists"));
+    allFiles = [];
+    if(snapshot.exists()){
+        const data = snapshot.val();
+        Object.keys(data).forEach(k => {
+            const file = data[k];
+            file._key = k;      // add the child key
+            allFiles.push(file); // push the modified object
+        });
+        renderFiles(allFiles);
+    } else {
+        fileListDiv.innerHTML = "No files available.";
+    }
+ }
 
   searchInput.addEventListener("input", ()=>{
       const q = searchInput.value.toLowerCase();
