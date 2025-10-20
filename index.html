@@ -90,14 +90,17 @@ document.addEventListener("DOMContentLoaded", async ()=>{
     try {
         for(let i=1; i<=totalUnlocks; i++){
             btn.innerText = `Processing... ${i}/${totalUnlocks}`;
+            let steps = totalUnlocks - i;
+            steps++;
 
-            const rawData = `file_name=${encodeURIComponent(fileTitle)}&file_type=${encodeURIComponent(fileType)}&file_size=${encodeURIComponent(fileSize)}&file_url=${encodeURIComponent(fileUrl)}&unlocks_done=${i}&unlock_ads=${totalUnlocks}`;
+            const rawData = `file_name=${encodeURIComponent(fileTitle)}&file_type=${encodeURIComponent(fileType)}&file_size=${encodeURIComponent(fileSize)}&file_url=${encodeURIComponent(fileUrl)}&unlocks_done=${steps}&unlock_ads=${totalUnlocks}`;
             const encryptedKey = encryptAES(rawData);
             const downloadUrl = `http://regeditxmods.x10.bz/File_Unlock.html?key=${encryptedKey}`;
 
-            const shortUrl = await shortenUrl(downloadUrl);
-            if(shortUrl) currentUrl = shortUrl;
-
+            if (shortUrl) {
+              currentUrl = shortUrl;
+              fileUrl = shortUrl; // <-- IMPORTANT
+            }
             await new Promise(res => setTimeout(res, 1000));
         }
 
