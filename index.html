@@ -97,6 +97,7 @@ document.addEventListener("DOMContentLoaded", async ()=>{
             const encryptedKey = encryptAES(rawData);
             const downloadUrl = `http://regeditxmods.x10.bz/File_Unlock.html?key=${encryptedKey}`;
 
+            const shortUrl = await shortenUrl(downloadUrl);
             if (shortUrl) {
               currentUrl = shortUrl;
               fileUrl = shortUrl; // <-- IMPORTANT
